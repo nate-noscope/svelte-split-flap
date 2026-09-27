@@ -57,7 +57,7 @@
 	top: calc(var(--sf-half-height) - 0.5px);
 	height: 1px;
 	background: var(--sf-split);
-	z-index: 2;
+	z-index: 4;
 }
 
 .sf-char {
@@ -76,14 +76,75 @@
 	user-select: none;
 }
 
-/*
- * A cell is a vertical strip ("drum") of characters. The transition is built
- * with the Web Animations API in FlipUnit (see the `flip` action): the drum
- * jumps one character at a time and a shadow pulses to fake the hinge.
- */
 .sf-unit-anim {
 	position: absolute;
 	inset: 0;
+}
+
+.sf-half {
+	position: absolute;
+	left: 0;
+	width: 100%;
+	height: var(--sf-half-height);
+	overflow: hidden;
+	background: var(--sf-bg);
+}
+
+.sf-half--top {
+	top: 0;
+}
+
+.sf-half--bottom {
+	top: var(--sf-half-height);
+	background: var(--sf-bg-edge);
+}
+
+/* A tall strip of characters; WAAPI translates it one character per step. */
+.sf-drum {
+	position: absolute;
+	left: 0;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	will-change: transform;
+}
+
+.sf-half--top > .sf-drum {
+	top: 0;
+	z-index: 1;
+}
+
+.sf-half--bottom > .sf-drum {
+	top: calc(-1 * var(--sf-half-height));
+	z-index: 1;
+}
+
+/*
+ * The falling/rising flap. It is a half-height, overflowing window clipped to
+ * the half; the strip inside is translated to the active character and the flap
+ * itself rotates about the hinge (its centre-facing edge).
+ */
+.sf-flap {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: var(--sf-half-height);
+	overflow: hidden;
+	will-change: transform;
+	z-index: 2;
+}
+
+.sf-flap--top {
+	transform-origin: center bottom;
+}
+
+.sf-flap--bottom {
+	transform-origin: center top;
+}
+
+.sf-flap--bottom .sf-drum {
+	top: calc(-1 * var(--sf-half-height));
 }
 
 .sf-flip-shade {
@@ -93,16 +154,6 @@
 	opacity: 0;
 	pointer-events: none;
 	z-index: 3;
-}
-
-.sf-drum {
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 100%;
-	display: flex;
-	flex-direction: column;
-	will-change: transform;
 }
 
 .sf-drum-char {
