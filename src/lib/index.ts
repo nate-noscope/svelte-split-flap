@@ -2,7 +2,7 @@ import './styles.css';
 
 export { default as SplitFlapDisplay } from './SplitFlapDisplay.svelte';
 export { default } from './SplitFlapDisplay.svelte';
-export { DEFAULT_CHARSET } from './charset.js';
+export { DEFAULT_CHARSET, sanitizeText } from './charset.js';
 export { getQuality, setQuality, quality, QUALITY_PROFILES } from './quality.js';
 export type { QualityProfile } from './quality.js';
 export type { Align, SplitFlapDisplayProps, Quality, QualityLayers } from './types.js';

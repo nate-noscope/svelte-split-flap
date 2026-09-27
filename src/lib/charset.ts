@@ -17,3 +17,16 @@ export function validateText(text: string, charSet: readonly string[] = DEFAULT_
 		);
 	}
 }
+
+/**
+ * Uppercase `text` and replace any character not present in `charSet` with
+ * `replacement`, so it can be shown without `validateText` throwing.
+ */
+export function sanitizeText(
+	text: string,
+	charSet: readonly string[] = DEFAULT_CHARSET,
+	replacement = ' '
+): string {
+	const allowed = new Set(charSet);
+	return [...text.toUpperCase()].map((char) => (allowed.has(char) ? char : replacement)).join('');
+}
