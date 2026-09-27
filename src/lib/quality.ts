@@ -56,6 +56,13 @@ function isQuality(value: unknown): value is Quality {
 	return value === 'low' || value === 'medium' || value === 'high';
 }
 
+function isMobile(): boolean {
+	if (typeof navigator === 'undefined') return false;
+	const uaData = (navigator as Navigator & { userAgentData?: { mobile?: boolean } }).userAgentData;
+	if (uaData?.mobile === true) return true;
+	return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent ?? '');
+}
+
 function detect(): Quality {
 	if (typeof navigator === 'undefined') return 'medium';
 
@@ -79,9 +86,12 @@ function detect(): Quality {
 		else if (memory >= 4) score += 1;
 	}
 
-	if (score >= 3) return 'high';
-	if (score >= 1) return 'medium';
-	return 'low';
+	let level: Quality = score >= 3 ? 'high' : score >= 1 ? 'medium' : 'low';
+
+	// Core count overstates phones; don't hand them the heaviest effect.
+	if (level === 'high' && isMobile()) level = 'medium';
+
+	return level;
 }
 
 function initial(): Quality {
@@ -108,25 +118,31 @@ function apply(next: Quality): void {
 	setConcurrencyLimit(QUALITY_PROFILES[next].concurrency);
 }
 
+let probed = false;
+
 /** The globally active quality level. */
 export function getQuality(): Quality {
 	return get(internal);
 }
 
-/** Globally change the quality of every board (call this from your own switcher). */
+/**
+ * Globally change the quality of every board (call this from your own switcher).
+ * An explicit choice also cancels the automatic frame-rate probe.
+ */
 export function setQuality(next: Quality): void {
-	if (isQuality(next)) apply(next);
+	if (!isQuality(next)) return;
+	probed = true;
+	apply(next);
 }
 
 // Seed the scheduler's concurrency from the initial level.
 setConcurrencyLimit(QUALITY_PROFILES[get(internal)].concurrency);
 
-let probed = false;
-
 /**
- * One-shot frame-rate probe. Runs ~40 frames after the first board mounts and
- * downgrades one level if the device is clearly struggling. Safe to call often;
- * it only runs once.
+ * One-shot frame-rate probe. Runs ~60 frames after the first board mounts and
+ * downgrades one level only if the device is genuinely bad (p95 frame > 50ms,
+ * i.e. sustained below ~20fps). A capable device running a heavy intro stays on
+ * its level. Safe to call often; it only runs once.
  */
 export function probeQuality(): void {
 	if (probed || typeof window === 'undefined' || typeof requestAnimationFrame !== 'function') {
@@ -141,7 +157,7 @@ export function probeQuality(): void {
 		samples.push(now - last);
 		last = now;
 
-		if (samples.length < 40) {
+		if (samples.length < 60) {
 			requestAnimationFrame(tick);
 			return;
 		}
@@ -149,10 +165,10 @@ export function probeQuality(): void {
 		const sorted = [...samples].sort((a, b) => a - b);
 		const p95 = sorted[Math.floor(sorted.length * 0.95)] ?? 16;
 
-		if (p95 > 30) {
+		if (p95 > 50) {
 			const current = getQuality();
-			if (current === 'high') setQuality('medium');
-			else if (current === 'medium') setQuality('low');
+			if (current === 'high') apply('medium');
+			else if (current === 'medium') apply('low');
 		}
 	};
 
