@@ -57,6 +57,8 @@
 		const height = node.getBoundingClientRect().height;
 		const { steps, duration } = params;
 		const epsilon = 1e-4;
+		const shadowMax =
+			parseFloat(getComputedStyle(node).getPropertyValue('--sf-shadow-max')) || 0.62;
 
 		const animations: Animation[] = [];
 		const run = (el: HTMLElement | null, keyframes: Keyframe[]) => {
@@ -107,7 +109,7 @@
 		const shade: Keyframe[] = [];
 		for (let i = 0; i < steps; i++) {
 			shade.push({ offset: i / steps, opacity: 0 });
-			shade.push({ offset: (i + 0.5) / steps, opacity: 0.5 });
+			shade.push({ offset: (i + 0.5) / steps, opacity: shadowMax });
 			shade.push({ offset: (i + 1) / steps, opacity: 0 });
 		}
 

@@ -18,6 +18,8 @@
 	--sf-fg: #f2f2ee;
 	--sf-border: rgba(255, 255, 255, 0.08);
 	--sf-split: rgba(0, 0, 0, 0.55);
+	--sf-perspective: calc(var(--sf-cell-height) * 5);
+	--sf-shadow-max: 0.62;
 
 	display: inline-flex;
 }
@@ -92,11 +94,15 @@
 
 .sf-half--top {
 	top: 0;
+	perspective: var(--sf-perspective);
+	perspective-origin: center bottom;
 }
 
 .sf-half--bottom {
 	top: var(--sf-half-height);
 	background: var(--sf-bg-edge);
+	perspective: var(--sf-perspective);
+	perspective-origin: center top;
 }
 
 /* A tall strip of characters; WAAPI translates it one character per step. */
