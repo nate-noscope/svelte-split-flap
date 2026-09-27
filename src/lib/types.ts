@@ -7,6 +7,11 @@ export interface SplitFlapDisplayProps {
 	charSet?: readonly string[];
 	stepMs?: number;
 	stagger?: number;
+	/**
+	 * Animate from blank on mount. Set to `false` for data-heavy boards where
+	 * rendering the final text immediately is cheaper (updates still animate).
+	 */
+	intro?: boolean;
 }
 
 export interface FlipUnitProps {
@@ -14,6 +19,7 @@ export interface FlipUnitProps {
 	charSet: readonly string[];
 	stepMs: number;
 	delay: number;
+	intro?: boolean;
 }
 
 export interface FlipLeafProps {

@@ -5,10 +5,10 @@
 	import { prefersReducedMotion } from './motion.js';
 	import type { FlipUnitProps } from './types.js';
 
-	let { target, charSet, stepMs, delay }: FlipUnitProps = $props();
+	let { target, charSet, stepMs, delay, intro = true }: FlipUnitProps = $props();
 
 	const blank = untrack(() => (charSet.includes(' ') ? ' ' : charSet[0]));
-	let displayed = $state(blank);
+	let displayed = $state(untrack(() => (intro ? blank : target)));
 	let leaf = $state<{ from: string; to: string } | null>(null);
 
 	let queue: string[] = [];
