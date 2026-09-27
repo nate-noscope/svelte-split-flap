@@ -77,9 +77,24 @@
 }
 
 /*
- * A cell is a vertical strip ("drum") of characters, scrolled from the current
- * character to the target with a single transform animation.
+ * A cell is a vertical strip ("drum") of characters. The transition is built
+ * with the Web Animations API in FlipUnit (see the `flip` action): the drum
+ * jumps one character at a time and a shadow pulses to fake the hinge.
  */
+.sf-unit-anim {
+	position: absolute;
+	inset: 0;
+}
+
+.sf-flip-shade {
+	position: absolute;
+	inset: 0;
+	background: #000;
+	opacity: 0;
+	pointer-events: none;
+	z-index: 3;
+}
+
 .sf-drum {
 	position: absolute;
 	left: 0;
@@ -88,7 +103,6 @@
 	display: flex;
 	flex-direction: column;
 	will-change: transform;
-	animation: sf-drum-scroll var(--sf-drum-duration, 1ms) linear forwards;
 }
 
 .sf-drum-char {
@@ -104,15 +118,6 @@
 	font-variant-numeric: tabular-nums;
 	color: var(--sf-fg);
 	user-select: none;
-}
-
-@keyframes sf-drum-scroll {
-	from {
-		transform: translateY(0);
-	}
-	to {
-		transform: translateY(calc(-1 * var(--sf-drum-steps) * var(--sf-cell-height)));
-	}
 }
 
 .sf-sr-only {

@@ -22,6 +22,8 @@
 		strip: string[];
 	};
 
+	type FlipParams = { steps: number; duration: number; onfinish: () => void };
+
 	const blank = untrack(() => (charSet.includes(' ') ? ' ' : charSet[0]));
 	let displayed = $state(untrack(() => (intro ? blank : target)));
 	let drum = $state<Drum | null>(null);
@@ -31,6 +33,56 @@
 	let acquiring = false;
 	let disposed = false;
 	let drumId = 0;
+
+	/**
+	 * Builds the whole transition as Web Animations:
+	 *  - the drum jumps one character at a time (`steps(1)` easing)
+	 *  - a shadow pulses at each jump, faking the flap passing the hinge
+	 */
+	function flip(node: HTMLElement, params: FlipParams) {
+		const drumEl = node.querySelector<HTMLElement>('.sf-drum');
+		const shadeEl = node.querySelector<HTMLElement>('.sf-flip-shade');
+
+		if (!drumEl || typeof drumEl.animate !== 'function') {
+			return { destroy() {} };
+		}
+
+		const height = node.getBoundingClientRect().height;
+		const { steps, duration } = params;
+
+		const scroll: Keyframe[] = [];
+		for (let i = 0; i <= steps; i++) {
+			scroll.push({
+				offset: i / steps,
+				transform: `translateY(${-i * height}px)`,
+				easing: i < steps ? 'steps(1, end)' : 'linear'
+			});
+		}
+
+		const shade: Keyframe[] = [];
+		for (let i = 0; i < steps; i++) {
+			shade.push({ offset: i / steps, opacity: 0 });
+			shade.push({ offset: (i + 0.5) / steps, opacity: 0.5 });
+		}
+		shade.push({ offset: 1, opacity: 0 });
+
+		const animations: Animation[] = [drumEl.animate(scroll, { duration, fill: 'forwards' })];
+		if (shadeEl) {
+			animations.push(shadeEl.animate(shade, { duration, fill: 'forwards' }));
+		}
+
+		const primary = animations[0];
+		primary.onfinish = () => params.onfinish();
+
+		return {
+			destroy() {
+				for (const animation of animations) {
+					animation.onfinish = null;
+					animation.cancel();
+				}
+			}
+		};
+	}
 
 	function clearStartTimer() {
 		if (startTimer !== undefined) {
@@ -75,7 +127,6 @@
 			return;
 		}
 
-		// Something changed while we waited for a slot — recompute from fresh state.
 		if (displayed !== from || target !== to) {
 			release();
 			void startNext();
@@ -102,8 +153,8 @@
 		}
 	}
 
-	function handleDrumEnd(event: AnimationEvent) {
-		if (event.animationName !== 'sf-drum-scroll' || !drum) return;
+	function handleDrumEnd() {
+		if (!drum) return;
 
 		displayed = drum.to;
 		drum = null;
@@ -141,13 +192,15 @@
 	{#if drum}
 		{#key drum.id}
 			<div
-				class="sf-drum"
-				onanimationend={handleDrumEnd}
-				style="--sf-drum-steps: {drum.steps}; --sf-drum-duration: {drum.duration}ms;"
+				class="sf-unit-anim"
+				use:flip={{ steps: drum.steps, duration: drum.duration, onfinish: handleDrumEnd }}
 			>
-				{#each drum.strip as char, index (index)}
-					<span class="sf-drum-char">{char}</span>
-				{/each}
+				<div class="sf-drum">
+					{#each drum.strip as char, index (index)}
+						<span class="sf-drum-char">{char}</span>
+					{/each}
+				</div>
+				<span class="sf-flip-shade"></span>
 			</div>
 		{/key}
 	{:else}
