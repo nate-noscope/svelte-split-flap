@@ -47,19 +47,47 @@ board's width.
 
 ## Props
 
-| Prop       | Type                            | Default           | Description                                                                                           |
-| ---------- | ------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
-| `text`     | `string`                        | — (required)      | Text to display. Padded/truncated to `length`.                                                        |
-| `length`   | `number`                        | — (required)      | Fixed number of character cells.                                                                      |
-| `align`    | `'left' \| 'right' \| 'center'` | `'left'`          | How to align `text` when padding.                                                                     |
-| `charSet`  | `readonly string[]`             | `DEFAULT_CHARSET` | Ordered character set cycled through.                                                                 |
-| `stepMs`   | `number`                        | `80`              | Duration of a single character step (ms).                                                             |
-| `stagger`  | `number`                        | `40`              | Per-cell start delay, `index * stagger` (ms).                                                         |
-| `intro`    | `boolean`                       | `true`            | Animate from blank on mount. Set `false` for many boards to render instantly (updates still animate). |
-| `maxSteps` | `number`                        | `Infinity`        | Cap intermediate characters per transition (cheaper at the cost of a coarser cycle).                  |
+| Prop       | Type                                    | Default           | Description                                                                                           |
+| ---------- | --------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
+| `text`     | `string`                                | — (required)      | Text to display. Padded/truncated to `length`.                                                        |
+| `length`   | `number`                                | — (required)      | Fixed number of character cells.                                                                      |
+| `align`    | `'left' \| 'right' \| 'center'`         | `'left'`          | How to align `text` when padding.                                                                     |
+| `charSet`  | `readonly string[]`                     | `DEFAULT_CHARSET` | Ordered character set cycled through.                                                                 |
+| `stepMs`   | `number`                                | `80`              | Duration of a single character step (ms).                                                             |
+| `stagger`  | `number`                                | `40`              | Per-cell start delay, `index * stagger` (ms).                                                         |
+| `intro`    | `boolean`                               | `true`            | Animate from blank on mount. Set `false` for many boards to render instantly (updates still animate). |
+| `maxSteps` | `number`                                | profile default   | Cap intermediate characters per transition (cheaper at the cost of a coarser cycle).                  |
+| `quality`  | `'auto' \| 'low' \| 'medium' \| 'high'` | `'auto'`          | Visual layers + concurrency. `auto` uses device detection; override per board.                        |
 
 The default charset is space, `A`–`Z`, `0`–`9`, then `.,!?':-/&`. Characters in `text` that are
 not present in `charSet` throw a clear error.
+
+## Quality
+
+Quality controls how many visual layers each cell renders (and how many cells may flip at once),
+so weak devices can run a cheaper version:
+
+| Level    | Layers                                                  | Concurrency | `maxSteps` |
+| -------- | ------------------------------------------------------- | ----------- | ---------- |
+| `low`    | top flap + reveal only (bottom swaps discretely), no 3D | 8           | 3          |
+| `medium` | full double flap, no shade/highlight, 3D on             | 24          | 6          |
+| `high`   | full double flap + shade + highlight + 3D               | 48          | 12         |
+
+`auto` (the default) picks a level from `navigator.hardwareConcurrency`, `navigator.deviceMemory`
+and `prefers-reduced-motion`, then runs a one-shot frame-rate probe and downgrades one level if the
+device is struggling.
+
+Change it globally — this is the hook for your own switcher:
+
+```ts
+import { getQuality, setQuality, quality } from 'svelte-split-flap';
+
+setQuality('low'); // updates every board reactively
+getQuality(); // 'low' | 'medium' | 'high'
+```
+
+`quality` is also a Svelte store (`$quality`). For code-free demos you can set
+`data-sf-quality="high"` on `<html>` or open the page with `?sfQuality=high`.
 
 ## Theming
 
@@ -74,7 +102,9 @@ All visual values are CSS custom properties set on `.sf-display`. Override them 
 	--sf-bg-edge: #141617;
 	--sf-fg: #f2f2ee;
 	--sf-border: rgba(255, 255, 255, 0.08);
-	--sf-shadow-max: 0.55;
+	--sf-shadow-max: 0.62;
+	--sf-highlight-max: 0.35;
+	--sf-perspective: calc(var(--sf-cell-height) * 5);
 	--sf-gap: 0.125rem;
 	--sf-radius: 0.25rem;
 	--sf-font-family: 'Overpass Mono Variable', ui-monospace, monospace;

@@ -3,7 +3,7 @@
 	import { getPath, samplePath } from './path.js';
 	import { prefersReducedMotion } from './motion.js';
 	import { requestSlot } from './scheduler.js';
-	import type { FlipUnitProps } from './types.js';
+	import type { FlipUnitProps, QualityLayers } from './types.js';
 
 	let {
 		target,
@@ -11,7 +11,8 @@
 		stepMs,
 		delay,
 		intro = true,
-		maxSteps = Infinity
+		maxSteps = Infinity,
+		layers
 	}: FlipUnitProps = $props();
 
 	type Drum = {
@@ -22,7 +23,12 @@
 		strip: string[];
 	};
 
-	type FlipParams = { steps: number; duration: number; onfinish: () => void };
+	type FlipParams = {
+		steps: number;
+		duration: number;
+		layers: QualityLayers;
+		onfinish: () => void;
+	};
 
 	const blank = untrack(() => (charSet.includes(' ') ? ' ' : charSet[0]));
 	let displayed = $state(untrack(() => (intro ? blank : target)));
@@ -35,20 +41,29 @@
 	let drumId = 0;
 
 	/**
-	 * Builds the whole transition as Web Animations, per cell. Four strips carry
-	 * the character sequence (advanced one character per step) while two flaps
-	 * rotate about the hinge, exactly like the classic split-flap:
-	 *  - top flap falls 0deg -> 90deg, revealing the next character's top;
-	 *  - bottom flap rises -90deg -> 0deg, covering the previous bottom.
-	 * No per-step JS.
+	 * Builds the whole transition as Web Animations, per cell. Strips carry the
+	 * character sequence (advanced one character per step) while flaps rotate
+	 * about the hinge. Which layers exist is driven by the quality profile.
 	 */
 	function flip(node: HTMLElement, params: FlipParams) {
+		const { layers } = params;
 		const topFront = node.querySelector<HTMLElement>('.sf-half--top > .sf-flap .sf-drum');
-		const topBehind = node.querySelector<HTMLElement>('.sf-half--top > .sf-drum');
 		const topFlap = node.querySelector<HTMLElement>('.sf-half--top > .sf-flap');
-		const bottomFront = node.querySelector<HTMLElement>('.sf-half--bottom > .sf-flap .sf-drum');
-		const bottomBehind = node.querySelector<HTMLElement>('.sf-half--bottom > .sf-drum');
-		const bottomFlap = node.querySelector<HTMLElement>('.sf-half--bottom > .sf-flap');
+		const topBehind = layers.topReveal
+			? node.querySelector<HTMLElement>('.sf-half--top > .sf-drum')
+			: null;
+		const bottomFront = layers.bottomFlap
+			? node.querySelector<HTMLElement>('.sf-half--bottom > .sf-flap .sf-drum')
+			: null;
+		const bottomFlap = layers.bottomFlap
+			? node.querySelector<HTMLElement>('.sf-half--bottom > .sf-flap')
+			: null;
+		const bottomBehind = layers.bottomReveal
+			? node.querySelector<HTMLElement>('.sf-half--bottom > .sf-drum')
+			: null;
+		const bottomSimple = layers.bottomFlap
+			? null
+			: node.querySelector<HTMLElement>('.sf-half--bottom > .sf-drum');
 
 		if (!topFlap || typeof topFlap.animate !== 'function') {
 			return { destroy() {} };
@@ -57,8 +72,9 @@
 		const height = node.getBoundingClientRect().height;
 		const { steps, duration } = params;
 		const epsilon = 1e-4;
-		const shadowMax =
-			parseFloat(getComputedStyle(node).getPropertyValue('--sf-shadow-max')) || 0.62;
+		const style = getComputedStyle(node);
+		const shadowMax = parseFloat(style.getPropertyValue('--sf-shadow-max')) || 0.62;
+		const highlightMax = parseFloat(style.getPropertyValue('--sf-highlight-max')) || 0.35;
 
 		const animations: Animation[] = [];
 		const run = (el: HTMLElement | null, keyframes: Keyframe[]) => {
@@ -106,22 +122,39 @@
 			}
 		}
 
-		const shade: Keyframe[] = [];
-		for (let i = 0; i < steps; i++) {
-			shade.push({ offset: i / steps, opacity: 0 });
-			shade.push({ offset: (i + 0.5) / steps, opacity: shadowMax });
-			shade.push({ offset: (i + 1) / steps, opacity: 0 });
-		}
+		// Per-step pulse (0 -> max -> 0) used by the shade and highlight layers.
+		const pulse = (max: number): Keyframe[] => {
+			const keyframes: Keyframe[] = [];
+			for (let i = 0; i < steps; i++) {
+				keyframes.push({ offset: i / steps, opacity: 0 });
+				keyframes.push({ offset: (i + 0.5) / steps, opacity: max });
+				keyframes.push({ offset: (i + 1) / steps, opacity: 0 });
+			}
+			return keyframes;
+		};
 
 		run(topFront, strip(0));
-		run(topBehind, strip(1));
-		run(bottomBehind, strip(0));
-		run(bottomFront, strip(1));
 		run(topFlap, fall);
-		run(bottomFlap, rise);
+		run(topBehind, strip(1));
 
-		for (const shadeEl of node.querySelectorAll<HTMLElement>('.sf-flip-shade')) {
-			animations.push(shadeEl.animate(shade, { duration, fill: 'forwards' }));
+		if (layers.bottomFlap) {
+			run(bottomFront, strip(1));
+			run(bottomFlap, rise);
+			run(bottomBehind, strip(0));
+		} else {
+			run(bottomSimple, strip(0));
+		}
+
+		if (layers.shade) {
+			for (const shade of node.querySelectorAll<HTMLElement>('.sf-flip-shade')) {
+				animations.push(shade.animate(pulse(shadowMax), { duration, fill: 'forwards' }));
+			}
+		}
+
+		if (layers.highlight) {
+			for (const highlight of node.querySelectorAll<HTMLElement>('.sf-flip-highlight')) {
+				animations.push(highlight.animate(pulse(highlightMax), { duration, fill: 'forwards' }));
+			}
 		}
 
 		const primary = animations[0];
@@ -241,42 +274,56 @@
 	});
 </script>
 
-<div class="sf-unit" aria-hidden="true">
+<div class="sf-unit" aria-hidden="true" class:sf-flat={!layers.perspective}>
 	{#if drum}
 		{#key drum.id}
 			<div
 				class="sf-unit-anim"
-				use:flip={{ steps: drum.steps, duration: drum.duration, onfinish: handleDrumEnd }}
+				use:flip={{ steps: drum.steps, duration: drum.duration, layers, onfinish: handleDrumEnd }}
 			>
 				<div class="sf-half sf-half--top">
-					<div class="sf-drum">
-						{#each drum.strip as char, index (index)}
-							<span class="sf-drum-char">{char}</span>
-						{/each}
-					</div>
+					{#if layers.topReveal}
+						<div class="sf-drum">
+							{#each drum.strip as char, index (index)}
+								<span class="sf-drum-char">{char}</span>
+							{/each}
+						</div>
+					{/if}
 					<div class="sf-flap sf-flap--top">
 						<div class="sf-drum">
 							{#each drum.strip as char, index (index)}
 								<span class="sf-drum-char">{char}</span>
 							{/each}
 						</div>
-						<span class="sf-flip-shade"></span>
+						{#if layers.shade}<span class="sf-flip-shade"></span>{/if}
+						{#if layers.highlight}<span class="sf-flip-highlight"></span>{/if}
 					</div>
 				</div>
 				<div class="sf-half sf-half--bottom">
-					<div class="sf-drum">
-						{#each drum.strip as char, index (index)}
-							<span class="sf-drum-char">{char}</span>
-						{/each}
-					</div>
-					<div class="sf-flap sf-flap--bottom">
+					{#if layers.bottomFlap}
+						{#if layers.bottomReveal}
+							<div class="sf-drum">
+								{#each drum.strip as char, index (index)}
+									<span class="sf-drum-char">{char}</span>
+								{/each}
+							</div>
+						{/if}
+						<div class="sf-flap sf-flap--bottom">
+							<div class="sf-drum">
+								{#each drum.strip as char, index (index)}
+									<span class="sf-drum-char">{char}</span>
+								{/each}
+							</div>
+							{#if layers.shade}<span class="sf-flip-shade"></span>{/if}
+							{#if layers.highlight}<span class="sf-flip-highlight"></span>{/if}
+						</div>
+					{:else}
 						<div class="sf-drum">
 							{#each drum.strip as char, index (index)}
 								<span class="sf-drum-char">{char}</span>
 							{/each}
 						</div>
-						<span class="sf-flip-shade"></span>
-					</div>
+					{/if}
 				</div>
 			</div>
 		{/key}

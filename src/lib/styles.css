@@ -20,6 +20,7 @@
 	--sf-split: rgba(0, 0, 0, 0.55);
 	--sf-perspective: calc(var(--sf-cell-height) * 5);
 	--sf-shadow-max: 0.62;
+	--sf-highlight-max: 0.35;
 
 	display: inline-flex;
 }
@@ -160,6 +161,20 @@
 	opacity: 0;
 	pointer-events: none;
 	z-index: 3;
+}
+
+.sf-flip-highlight {
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(to bottom, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0));
+	opacity: 0;
+	pointer-events: none;
+	z-index: 3;
+}
+
+/* Low quality: no 3D projection, just the vertical squash. */
+.sf-flat .sf-half {
+	perspective: none;
 }
 
 .sf-drum-char {
