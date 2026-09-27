@@ -27,10 +27,3 @@ export interface FlipUnitProps {
 	intro?: boolean;
 	maxSteps?: number;
 }
-
-export interface FlipLeafProps {
-	from: string;
-	to: string;
-	durationMs: number;
-	onComplete: () => void;
-}

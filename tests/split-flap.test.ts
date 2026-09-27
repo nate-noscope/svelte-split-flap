@@ -36,6 +36,6 @@ describe('SplitFlapDisplay', () => {
 		flushSync();
 
 		const chars = [...container.querySelectorAll('.sf-char')].map((el) => el.textContent);
-		expect(chars).toEqual(['G', 'G', 'O', 'O', ' ', ' ', ' ', ' ']);
+		expect(chars).toEqual(['G', 'O', ' ', ' ']);
 	});
 });

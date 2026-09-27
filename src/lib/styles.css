@@ -17,11 +17,7 @@
 	--sf-bg-edge: #141617;
 	--sf-fg: #f2f2ee;
 	--sf-border: rgba(255, 255, 255, 0.08);
-	--sf-shadow-color: #000;
-	--sf-shadow-max: 0.55;
-
-	--sf-ease-front: cubic-bezier(0.55, 0.055, 0.675, 0.19);
-	--sf-ease-back: cubic-bezier(0.215, 0.61, 0.355, 1);
+	--sf-split: rgba(0, 0, 0, 0.55);
 
 	display: inline-flex;
 }
@@ -42,22 +38,26 @@
 	box-shadow: inset 0 0 0 1px var(--sf-border);
 }
 
-.sf-half {
+/* darker lower half + hinge line, sitting behind the characters */
+.sf-unit::before {
+	content: '';
 	position: absolute;
 	left: 0;
-	width: 100%;
+	right: 0;
+	bottom: 0;
 	height: var(--sf-half-height);
-	overflow: hidden;
-	background: var(--sf-bg);
-}
-
-.sf-half--top {
-	top: 0;
-}
-
-.sf-half--bottom {
-	top: var(--sf-half-height);
 	background: var(--sf-bg-edge);
+}
+
+.sf-unit::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: calc(var(--sf-half-height) - 0.5px);
+	height: 1px;
+	background: var(--sf-split);
+	z-index: 2;
 }
 
 .sf-char {
@@ -76,91 +76,42 @@
 	user-select: none;
 }
 
-.sf-half--bottom .sf-char,
-.sf-leaf-back .sf-char {
-	top: calc(-1 * var(--sf-half-height));
-}
-
-.sf-leaf {
-	position: absolute;
-	inset: 0;
-}
-
-.sf-leaf-front,
-.sf-leaf-back {
+/*
+ * A cell is a vertical strip ("drum") of characters, scrolled from the current
+ * character to the target with a single transform animation.
+ */
+.sf-drum {
 	position: absolute;
 	left: 0;
-	width: 100%;
-	height: var(--sf-half-height);
-	overflow: hidden;
-	background: var(--sf-bg);
-	will-change: transform;
-}
-
-.sf-leaf-front {
 	top: 0;
-	transform-origin: center bottom;
-	animation: sf-front-fall var(--sf-front-duration, 40ms) var(--sf-ease-front) forwards;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	will-change: transform;
+	animation: sf-drum-scroll var(--sf-drum-duration, 1ms) linear forwards;
 }
 
-.sf-leaf-back {
-	top: var(--sf-half-height);
-	background: var(--sf-bg-edge);
-	transform-origin: center top;
-	transform: rotateX(-90deg);
-	animation: sf-back-fall var(--sf-back-duration, 40ms) var(--sf-ease-back)
-		var(--sf-back-delay, 40ms) forwards;
+.sf-drum-char {
+	display: block;
+	flex: 0 0 auto;
+	width: 100%;
+	height: var(--sf-cell-height);
+	line-height: var(--sf-cell-height);
+	text-align: center;
+	font-family: var(--sf-font-family);
+	font-size: var(--sf-font-size);
+	font-weight: var(--sf-font-weight);
+	font-variant-numeric: tabular-nums;
+	color: var(--sf-fg);
+	user-select: none;
 }
 
-.sf-shade {
-	position: absolute;
-	inset: 0;
-	background: var(--sf-shadow-color);
-	opacity: 0;
-	pointer-events: none;
-}
-
-.sf-shade--front {
-	animation: sf-front-shade var(--sf-front-duration, 40ms) linear forwards;
-}
-
-.sf-shade--back {
-	animation: sf-back-shade var(--sf-back-duration, 40ms) linear var(--sf-back-delay, 40ms) forwards;
-}
-
-@keyframes sf-front-fall {
+@keyframes sf-drum-scroll {
 	from {
-		transform: rotateX(0deg);
+		transform: translateY(0);
 	}
 	to {
-		transform: rotateX(90deg);
-	}
-}
-
-@keyframes sf-back-fall {
-	from {
-		transform: rotateX(-90deg);
-	}
-	to {
-		transform: rotateX(0deg);
-	}
-}
-
-@keyframes sf-front-shade {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: var(--sf-shadow-max);
-	}
-}
-
-@keyframes sf-back-shade {
-	from {
-		opacity: var(--sf-shadow-max);
-	}
-	to {
-		opacity: 0;
+		transform: translateY(calc(-1 * var(--sf-drum-steps) * var(--sf-cell-height)));
 	}
 }
 
