@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onDestroy, untrack } from 'svelte';
 	import FlipLeaf from './FlipLeaf.svelte';
-	import { getPath } from './path';
-	import { prefersReducedMotion } from './motion';
-	import type { FlipUnitProps } from './types';
+	import { getPath } from './path.js';
+	import { prefersReducedMotion } from './motion.js';
+	import type { FlipUnitProps } from './types.js';
 
 	let { target, charSet, stepMs, delay }: FlipUnitProps = $props();
 

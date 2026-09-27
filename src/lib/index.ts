@@ -1,10 +1,9 @@
-import '@fontsource-variable/overpass-mono';
 import './styles.css';
 
 export { default as SplitFlapDisplay } from './SplitFlapDisplay.svelte';
 export { default } from './SplitFlapDisplay.svelte';
-export { DEFAULT_CHARSET } from './charset';
-export type { Align, SplitFlapDisplayProps } from './types';
+export { DEFAULT_CHARSET } from './charset.js';
+export type { Align, SplitFlapDisplayProps } from './types.js';
 
 /**
  * Usage:

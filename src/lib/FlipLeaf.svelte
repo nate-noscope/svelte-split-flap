@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { FlipLeafProps } from './types';
+	import type { FlipLeafProps } from './types.js';
 
 	let { from, to, durationMs, onComplete }: FlipLeafProps = $props();
 

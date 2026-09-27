@@ -1,8 +1,8 @@
 <script lang="ts">
 	import FlipUnit from './FlipUnit.svelte';
-	import { DEFAULT_CHARSET, validateText } from './charset';
-	import { staggerDelay } from './motion';
-	import type { Align, SplitFlapDisplayProps } from './types';
+	import { DEFAULT_CHARSET, validateText } from './charset.js';
+	import { staggerDelay } from './motion.js';
+	import type { Align, SplitFlapDisplayProps } from './types.js';
 
 	let {
 		text,

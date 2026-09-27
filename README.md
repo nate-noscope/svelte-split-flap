@@ -10,7 +10,7 @@ target character, with a per-cell stagger so a whole row cascades. The cell coun
 ![Animation: the board flips from HELLO WORLD to GOOD MORNING](./docs/demo.gif)
 
 - Forward-only cycling through the charset, like real hardware (wrapping at the end).
-- Only vertical scaling changes, the z-axis is ignored. This creates a nice flipping 
+- Only vertical scaling changes, the z-axis is ignored. This creates a nice flipping
   effect that keeps the mechanical feel while not being too cluttered.
 - Animates only `transform`/`opacity`; `will-change` is applied only while a cell is animating.
 - Respects `prefers-reduced-motion` (snaps straight to the final text).
