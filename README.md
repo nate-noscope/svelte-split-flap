@@ -10,7 +10,8 @@ target character, with a per-cell stagger so a whole row cascades. The cell coun
 ![Animation: the board flips from HELLO WORLD to GOOD MORNING](./docs/demo.gif)
 
 - Forward-only cycling through the charset, like real hardware (wrapping at the end).
-- Pure vertical squash (`rotateX` with no `perspective`) — no 3D pop.
+- Only vertical scaling changes, the z-axis is ignored. This creates a nice flipping 
+  effect that keeps the mechanical feel while not being too cluttered.
 - Animates only `transform`/`opacity`; `will-change` is applied only while a cell is animating.
 - Respects `prefers-reduced-motion` (snaps straight to the final text).
 - Accessible: animated cells are `aria-hidden` and the real text is exposed to screen readers.
@@ -22,7 +23,7 @@ target character, with a per-cell stagger so a whole row cascades. The cell coun
 This package is not published to npm. Use it directly from GitHub:
 
 ```bash
-npm install github:<your-username>/svelte-split-flap
+npm install github:nate-noscope/svelte-split-flap
 ```
 
 Installing from Git runs the package's build, so the compiled `dist/` is present.
