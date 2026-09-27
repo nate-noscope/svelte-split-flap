@@ -7,6 +7,8 @@ Each cell flips mechanically through an ordered charset instead of jumping strai
 target character, with a per-cell stagger so a whole row cascades. The cell count is fixed by a
 `length` prop, so the board never reflows as the text changes.
 
+![Animation: the board flips from HELLO WORLD to GOOD MORNING](./docs/demo.gif)
+
 - Forward-only cycling through the charset, like real hardware (wrapping at the end).
 - Pure vertical squash (`rotateX` with no `perspective`) — no 3D pop.
 - Animates only `transform`/`opacity`; `will-change` is applied only while a cell is animating.
