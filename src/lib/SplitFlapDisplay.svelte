@@ -11,7 +11,8 @@
 		charSet = DEFAULT_CHARSET,
 		stepMs = 80,
 		stagger = 40,
-		intro = true
+		intro = true,
+		maxSteps = Infinity
 	}: SplitFlapDisplayProps = $props();
 
 	function pad(value: string, size: number, alignment: Align): string {
@@ -42,7 +43,14 @@
 <div class="sf-display">
 	<div class="sf-row" aria-hidden="true">
 		{#each chars as char, index (index)}
-			<FlipUnit {charSet} {stepMs} {intro} target={char} delay={staggerDelay(index, stagger)} />
+			<FlipUnit
+				{charSet}
+				{stepMs}
+				{intro}
+				{maxSteps}
+				target={char}
+				delay={staggerDelay(index, stagger)}
+			/>
 		{/each}
 	</div>
 	<span class="sf-sr-only">{text}</span>

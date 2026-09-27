@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { DEFAULT_CHARSET } from '../src/lib/charset';
-import { getPath } from '../src/lib/path';
+import { getPath, samplePath } from '../src/lib/path';
 
 const ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const SMALL = ['A', 'B', 'C', 'D'];
@@ -81,6 +81,48 @@ describe('getPath (forward only)', () => {
 					previousIndex = index;
 				}
 			}
+		}
+	});
+});
+
+describe('samplePath', () => {
+	it('returns the full path when it is already within the limit', () => {
+		const path = getPath('A', 'D', SMALL);
+		expect(samplePath(path, 10)).toEqual(path);
+		expect(samplePath(path, 3)).toEqual(path);
+	});
+
+	it('returns the full path when the limit is below 1', () => {
+		const path = getPath('A', 'D', SMALL);
+		expect(samplePath(path, 0)).toEqual(path);
+		expect(samplePath(path, -5)).toEqual(path);
+	});
+
+	it('caps the path to maxSteps and always ends at the target', () => {
+		const path = getPath('A', 'Z', ALPHA); // 25 steps
+		const sampled = samplePath(path, 5);
+		expect(sampled).toHaveLength(5);
+		expect(sampled.at(-1)).toBe('Z');
+		expect(path).toContain(sampled[0]);
+	});
+
+	it('collapses to just the target for maxSteps = 1', () => {
+		const path = getPath('A', 'Z', ALPHA);
+		expect(samplePath(path, 1)).toEqual(['Z']);
+	});
+
+	it('handles empty paths', () => {
+		expect(samplePath([], 5)).toEqual([]);
+	});
+
+	it('keeps strictly forward progress when sampling', () => {
+		const path = getPath('A', 'Z', ALPHA);
+		const sampled = samplePath(path, 7);
+		let previous = -1;
+		for (const char of sampled) {
+			const index = path.indexOf(char);
+			expect(index).toBeGreaterThan(previous);
+			previous = index;
 		}
 	});
 });

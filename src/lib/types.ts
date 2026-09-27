@@ -12,6 +12,11 @@ export interface SplitFlapDisplayProps {
 	 * rendering the final text immediately is cheaper (updates still animate).
 	 */
 	intro?: boolean;
+	/**
+	 * Cap the number of intermediate characters cycled through per transition.
+	 * Lower values are cheaper; `Infinity` (default) cycles every character.
+	 */
+	maxSteps?: number;
 }
 
 export interface FlipUnitProps {
@@ -20,6 +25,7 @@ export interface FlipUnitProps {
 	stepMs: number;
 	delay: number;
 	intro?: boolean;
+	maxSteps?: number;
 }
 
 export interface FlipLeafProps {

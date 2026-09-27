@@ -47,15 +47,16 @@ board's width.
 
 ## Props
 
-| Prop      | Type                            | Default           | Description                                                                                           |
-| --------- | ------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
-| `text`    | `string`                        | — (required)      | Text to display. Padded/truncated to `length`.                                                        |
-| `length`  | `number`                        | — (required)      | Fixed number of character cells.                                                                      |
-| `align`   | `'left' \| 'right' \| 'center'` | `'left'`          | How to align `text` when padding.                                                                     |
-| `charSet` | `readonly string[]`             | `DEFAULT_CHARSET` | Ordered character set cycled through.                                                                 |
-| `stepMs`  | `number`                        | `80`              | Duration of a single character step (ms).                                                             |
-| `stagger` | `number`                        | `40`              | Per-cell start delay, `index * stagger` (ms).                                                         |
-| `intro`   | `boolean`                       | `true`            | Animate from blank on mount. Set `false` for many boards to render instantly (updates still animate). |
+| Prop       | Type                            | Default           | Description                                                                                           |
+| ---------- | ------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
+| `text`     | `string`                        | — (required)      | Text to display. Padded/truncated to `length`.                                                        |
+| `length`   | `number`                        | — (required)      | Fixed number of character cells.                                                                      |
+| `align`    | `'left' \| 'right' \| 'center'` | `'left'`          | How to align `text` when padding.                                                                     |
+| `charSet`  | `readonly string[]`             | `DEFAULT_CHARSET` | Ordered character set cycled through.                                                                 |
+| `stepMs`   | `number`                        | `80`              | Duration of a single character step (ms).                                                             |
+| `stagger`  | `number`                        | `40`              | Per-cell start delay, `index * stagger` (ms).                                                         |
+| `intro`    | `boolean`                       | `true`            | Animate from blank on mount. Set `false` for many boards to render instantly (updates still animate). |
+| `maxSteps` | `number`                        | `Infinity`        | Cap intermediate characters per transition (cheaper at the cost of a coarser cycle).                  |
 
 The default charset is space, `A`–`Z`, `0`–`9`, then `.,!?':-/&`. Characters in `text` that are
 not present in `charSet` throw a clear error.

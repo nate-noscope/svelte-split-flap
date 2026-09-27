@@ -36,6 +36,7 @@
 	width: var(--sf-cell-width);
 	height: var(--sf-cell-height);
 	overflow: hidden;
+	contain: paint;
 	background: var(--sf-bg);
 	border-radius: var(--sf-radius);
 	box-shadow: inset 0 0 0 1px var(--sf-border);

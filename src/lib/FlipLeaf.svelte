@@ -3,9 +3,27 @@
 
 	let { from, to, durationMs, onComplete }: FlipLeafProps = $props();
 
+	let root: HTMLDivElement | undefined;
+
 	const frontDuration = $derived(durationMs / 2);
 	const backDuration = $derived(durationMs / 2);
 	const backDelay = $derived(durationMs / 2);
+
+	function restart() {
+		if (!root || typeof root.getAnimations !== 'function') return;
+		for (const animation of root.getAnimations({ subtree: true })) {
+			animation.currentTime = 0;
+			animation.play();
+		}
+	}
+
+	// This component is reused across a cell's steps, so restart the CSS
+	// animations whenever the characters change instead of remounting.
+	$effect(() => {
+		void from;
+		void to;
+		restart();
+	});
 
 	function handleAnimationEnd(event: AnimationEvent) {
 		if (event.animationName === 'sf-back-fall') {
@@ -15,6 +33,7 @@
 </script>
 
 <div
+	bind:this={root}
 	class="sf-leaf"
 	aria-hidden="true"
 	style="--sf-front-duration: {frontDuration}ms; --sf-back-duration: {backDuration}ms; --sf-back-delay: {backDelay}ms;"
