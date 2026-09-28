@@ -21,7 +21,7 @@ export const QUALITY_PROFILES: Record<Quality, QualityProfile> = {
 			highlight: false,
 			perspective: false
 		},
-		concurrency: 8,
+		concurrency: 16,
 		maxSteps: 3
 	},
 	medium: {
@@ -34,7 +34,7 @@ export const QUALITY_PROFILES: Record<Quality, QualityProfile> = {
 			highlight: false,
 			perspective: true
 		},
-		concurrency: 24,
+		concurrency: 128,
 		maxSteps: 6
 	},
 	high: {
@@ -47,7 +47,9 @@ export const QUALITY_PROFILES: Record<Quality, QualityProfile> = {
 			highlight: true,
 			perspective: true
 		},
-		concurrency: 48,
+		// Effectively unlimited: high-end devices animate the whole board at
+		// once; throttling is done via the (fewer) quality layers instead.
+		concurrency: 1_000_000,
 		maxSteps: 12
 	}
 };

@@ -69,9 +69,9 @@ so weak devices can run a cheaper version:
 
 | Level    | Layers                                                  | Concurrency | `maxSteps` |
 | -------- | ------------------------------------------------------- | ----------- | ---------- |
-| `low`    | top flap + reveal only (bottom swaps discretely), no 3D | 8           | 3          |
-| `medium` | full double flap, no shade/highlight, 3D on             | 24          | 6          |
-| `high`   | full double flap + shade + highlight + 3D               | 48          | 12         |
+| `low`    | top flap + reveal only (bottom swaps discretely), no 3D | 16          | 3          |
+| `medium` | full double flap, no shade/highlight, 3D on             | 128         | 6          |
+| `high`   | full double flap + shade + highlight + 3D               | unlimited   | 12         |
 
 `auto` (the default) picks a level from `navigator.hardwareConcurrency`, `navigator.deviceMemory`
 and `prefers-reduced-motion`, then runs a one-shot frame-rate probe and downgrades one level if the
